@@ -62,6 +62,27 @@ describe("esm-utils", function () {
         },
       );
     });
+
+    it("should support file URLs with query and fragment", async function () {
+      const fixtureUrl = url.pathToFileURL(
+        require.resolve("./fixtures/module-without-default-export.mjs"),
+      );
+      fixtureUrl.search = "?time=1";
+      fixtureUrl.hash = "#suite";
+
+      const result = await esmUtils.requireOrImport(fixtureUrl.toString());
+      expect(result, "to satisfy", {
+        value: 42,
+      });
+    });
+
+    it("should support file URLs with query string", async function () {
+      const fileUrl = url.pathToFileURL("./test/node-unit/fixtures/module_using_query_string.mjs");
+      const fileString = fileUrl.toString() + "?query=test";
+      
+      const result = await esmUtils.requireOrImport(fileString);
+      expect(result, "to satisfy", {query_value: 'test'});
+    })
   });
 
   describe("loadFilesAsync()", function () {
@@ -100,6 +121,13 @@ describe("esm-utils", function () {
         "to be",
         `${url.pathToFileURL("/foo/bar.mjs").toString()}?foo=bar`,
       );
+    });
+    
+    it("should preserve file URL with query and fragment", async function () {
+      const fileUrl = `${url.pathToFileURL("/foo/bar.mjs").toString()}?foo=bar#baz`;
+
+      await esmUtils.loadFilesAsync([fileUrl], () => {}, () => {});
+      expect(esmUtils.doImport.firstCall.args[0], "to be", fileUrl);
     });
   });
 });

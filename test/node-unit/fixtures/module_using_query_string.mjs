@@ -1,0 +1,1 @@
+export const query_value = (new URL(import.meta.url).searchParams).get('query');
